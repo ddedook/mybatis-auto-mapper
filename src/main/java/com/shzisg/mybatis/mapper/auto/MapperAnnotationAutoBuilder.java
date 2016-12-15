@@ -96,7 +96,7 @@ public class MapperAnnotationAutoBuilder {
       boolean flushCache = !isSelect;
       boolean useCache = isSelect;
       
-      KeyGenerator keyGenerator;
+      KeyGenerator keyGenerator = null;
       String keyProperty = "id";
       String keyColumn = null;
       if (SqlCommandType.INSERT.equals(sqlCommandType) || SqlCommandType.UPDATE.equals(sqlCommandType)) {
@@ -106,7 +106,9 @@ public class MapperAnnotationAutoBuilder {
           keyGenerator = handleSelectKeyAnnotation(selectKey, mappedStatementId, getParameterType(method), languageDriver);
           keyProperty = selectKey.keyProperty();
         } else if (options == null) {
-          keyGenerator = keyGeneratorFromEntity();
+          if (sqlCommandType == SqlCommandType.INSERT) {
+            keyGenerator = keyGeneratorFromEntity();
+          }
           if (keyGenerator == null) {
             keyGenerator = configuration.isUseGeneratedKeys() ? new Jdbc3KeyGenerator() : new NoKeyGenerator();
           }
@@ -306,10 +308,11 @@ public class MapperAnnotationAutoBuilder {
   
   private String buildSqlFromMethodName(Method method) {
     SqlCommandType commandType = getSqlCommandType(method);
+    Map<String, Class<?>> typeMap = entityExpress.getColumnTypeMap();
+    Map<String, String> columnMap = entityExpress.getColumnMap();
     Map<String, Class<?>> parameterMap = getParameters(method);
     StringBuilder builder = new StringBuilder();
     if (commandType == SqlCommandType.SELECT) {
-      Map<String, String> columnMap = entityExpress.getColumnMap();
       builder.append("<script>select ")
         .append(columnMap.values().stream().collect(Collectors.joining(",")))
         .append(" from ")
@@ -317,13 +320,74 @@ public class MapperAnnotationAutoBuilder {
         .append("<where>");
       parameterMap.forEach((param, type) ->
         builder.append(" and ")
-          .append(param)
+          .append(columnMap.get(param))
           .append("=#{")
           .append(param)
           .append(",javaType=")
           .append(type.getCanonicalName())
           .append("}"));
       builder.append("</where></script>");
+    } else if (commandType == SqlCommandType.INSERT) {
+      builder.append("<script>insert into ")
+        .append(entityExpress.getName())
+        .append(columnMap.values()
+          .stream()
+          .collect(Collectors.joining(",", "(", ")")))
+        .append(" values ");
+      Map.Entry<String, Class<?>> parameter = parameterMap.entrySet().iterator().next();
+      if (parameter == null) {
+        throw new RuntimeException("Insert needs parameter");
+      }
+      if (Collection.class.isAssignableFrom(parameter.getValue())) {
+        builder.append("<foreach collection=\"collection\" item=\"item\" index=\"index\" separator=\",\">")
+          .append(typeMap.entrySet()
+            .stream()
+            .map(e -> "#{item." + e.getKey() + ",javaType=" + e.getValue().getCanonicalName() + "}")
+            .collect(Collectors.joining(",", "(", ")")))
+          .append("</foreach>");
+      } else {
+        builder.append(typeMap.entrySet()
+          .stream()
+          .map(e -> "#{" + e.getKey() + ",javaType=" + e.getValue().getCanonicalName() + "}")
+          .collect(Collectors.joining(",", "(", ")")));
+      }
+      builder.append("</script>");
+    } else if (commandType == SqlCommandType.UPDATE) {
+      Map.Entry<String, Class<?>> parameter = parameterMap.entrySet().iterator().next();
+      if (parameter == null) {
+        throw new RuntimeException("Insert needs parameter");
+      }
+      if (Collection.class.isAssignableFrom(parameter.getValue())) {
+        builder.append("<script><foreach collection=\"collection\" item=\"item\" index=\"index\" open=\"\" close=\"\" separator=\";\">update ")
+          .append(entityExpress.getName())
+          .append("<set>")
+          .append(columnMap.entrySet()
+            .stream()
+            .filter(e -> !e.getKey().equals(entityExpress.getPrimaryProperty()))
+            .map(e -> e.getValue() + "=#{item." + e.getKey() + ",javaType=" + typeMap.get(e.getKey()).getCanonicalName()+ "}")
+            .collect(Collectors.joining(","))
+          ).append("</set> where ")
+          .append(entityExpress.getPrimaryColumn())
+          .append("=#{item.")
+          .append(entityExpress.getPrimaryProperty())
+          .append("}</foreach></script>");
+      } else {
+        builder.append("<script>update ")
+          .append(entityExpress.getName())
+          .append("<set>")
+          .append(columnMap.entrySet()
+            .stream()
+            .filter(e -> !e.getKey().equals(entityExpress.getPrimaryProperty()))
+            .map(e -> e.getValue() + "=#{" + e.getKey() + ",javaType=" + typeMap.get(e.getKey()).getCanonicalName()+ "}")
+            .collect(Collectors.joining(","))
+          ).append("</set> where ")
+          .append(entityExpress.getPrimaryColumn())
+          .append("=#{")
+          .append(entityExpress.getPrimaryProperty())
+          .append(",javaType=")
+          .append(entityExpress.getPrimaryType().getCanonicalName())
+          .append("}</script>");
+      }
     }
     return builder.toString();
   }
@@ -334,7 +398,11 @@ public class MapperAnnotationAutoBuilder {
     for (int i = 0; i < parameters.length; ++i) {
       MethodParameter parameter = new MethodParameter(method, i);
       Param param = parameter.getParameterAnnotation(Param.class);
-      parameterMap.put(param.value(), parameters[i].getClass());
+      String key = parameters[i].getSimpleName();
+      if (param != null) {
+        key = param.value();
+      }
+      parameterMap.put(key, parameters[i]);
     }
     return parameterMap;
   }

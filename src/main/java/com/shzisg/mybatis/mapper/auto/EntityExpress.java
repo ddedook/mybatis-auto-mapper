@@ -15,6 +15,9 @@ public class EntityExpress {
   private Map<String, String> columnMap;
   private Map<String, Class<?>> columnTypeMap;
   private Class<?> entityClass;
+  private String primaryProperty;
+  private String primaryColumn;
+  private Class<?> primaryType;
   private GeneratedValue generatedValue;
   
   public EntityExpress(Class<?> entity) {
@@ -38,6 +41,9 @@ public class EntityExpress {
     for (Field field : entityClass.getDeclaredFields()) {
       Column column = field.getDeclaredAnnotation(Column.class);
       if (field.getAnnotation(Id.class) != null) {
+        primaryColumn = column.name();
+        primaryProperty = field.getName();
+        primaryType = field.getType();
         generatedValue = field.getAnnotation(GeneratedValue.class);
       }
       String columnName = field.getName();
@@ -64,6 +70,30 @@ public class EntityExpress {
       }
     }
     return null;
+  }
+  
+  public String getPrimaryProperty() {
+    return primaryProperty;
+  }
+  
+  public void setPrimaryProperty(String primaryProperty) {
+    this.primaryProperty = primaryProperty;
+  }
+  
+  public String getPrimaryColumn() {
+    return primaryColumn;
+  }
+  
+  public void setPrimaryColumn(String primaryColumn) {
+    this.primaryColumn = primaryColumn;
+  }
+  
+  public Class<?> getPrimaryType() {
+    return primaryType;
+  }
+  
+  public void setPrimaryType(Class<?> primaryType) {
+    this.primaryType = primaryType;
   }
   
   public String getName() {
