@@ -1,5 +1,7 @@
 package com.shzisg.mybatis.mapper.auto;
 
+import com.shzisg.mybatis.mapper.page.Page;
+import com.shzisg.mybatis.mapper.page.PageRequest;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.binding.BindingException;
@@ -195,6 +197,11 @@ public class MapperAnnotationAutoBuilder {
       org.apache.ibatis.mapping.ResultMap.Builder builder =
         new org.apache.ibatis.mapping.ResultMap.Builder(configuration, resultMapId, returnType, resultMappings);
       configuration.addResultMap(builder.build());
+    } else {
+      List<ResultMapping> resultMappings = new ArrayList<>();
+      org.apache.ibatis.mapping.ResultMap.Builder builder =
+        new org.apache.ibatis.mapping.ResultMap.Builder(configuration, resultMapId, returnType, resultMappings);
+      configuration.addResultMap(builder.build());
     }
     return resultMapId;
   }
@@ -214,7 +221,7 @@ public class MapperAnnotationAutoBuilder {
     Class<?> parameterType = null;
     Class<?>[] parameterTypes = method.getParameterTypes();
     for (Class<?> type : parameterTypes) {
-      if (!RowBounds.class.isAssignableFrom(type) && !ResultHandler.class.isAssignableFrom(type)) {
+      if (!PageRequest.class.isAssignableFrom(type) && !ResultHandler.class.isAssignableFrom(type)) {
         if (parameterType == null) {
           parameterType = type;
         } else {
@@ -318,14 +325,17 @@ public class MapperAnnotationAutoBuilder {
         .append(" from ")
         .append(entityExpress.getName())
         .append("<where>");
-      parameterMap.forEach((param, type) ->
-        builder.append(" and ")
-          .append(columnMap.get(param))
-          .append("=#{")
-          .append(param)
-          .append(",javaType=")
-          .append(type.getCanonicalName())
-          .append("}"));
+      parameterMap.forEach((param, type) -> {
+        if (!PageRequest.class.isAssignableFrom(type)) {
+          builder.append(" and ")
+            .append(columnMap.get(param))
+            .append("=#{")
+            .append(param)
+            .append(",javaType=")
+            .append(type.getCanonicalName())
+            .append("}");
+        }
+      });
       builder.append("</where></script>");
     } else if (commandType == SqlCommandType.INSERT) {
       builder.append("<script>insert into ")
@@ -364,7 +374,7 @@ public class MapperAnnotationAutoBuilder {
           .append(columnMap.entrySet()
             .stream()
             .filter(e -> !e.getKey().equals(entityExpress.getPrimaryProperty()))
-            .map(e -> e.getValue() + "=#{item." + e.getKey() + ",javaType=" + typeMap.get(e.getKey()).getCanonicalName()+ "}")
+            .map(e -> e.getValue() + "=#{item." + e.getKey() + ",javaType=" + typeMap.get(e.getKey()).getCanonicalName() + "}")
             .collect(Collectors.joining(","))
           ).append("</set> where ")
           .append(entityExpress.getPrimaryColumn())
@@ -378,7 +388,7 @@ public class MapperAnnotationAutoBuilder {
           .append(columnMap.entrySet()
             .stream()
             .filter(e -> !e.getKey().equals(entityExpress.getPrimaryProperty()))
-            .map(e -> e.getValue() + "=#{" + e.getKey() + ",javaType=" + typeMap.get(e.getKey()).getCanonicalName()+ "}")
+            .map(e -> e.getValue() + "=#{" + e.getKey() + ",javaType=" + typeMap.get(e.getKey()).getCanonicalName() + "}")
             .collect(Collectors.joining(","))
           ).append("</set> where ")
           .append(entityExpress.getPrimaryColumn())
@@ -388,6 +398,19 @@ public class MapperAnnotationAutoBuilder {
           .append(entityExpress.getPrimaryType().getCanonicalName())
           .append("}</script>");
       }
+    } else if (commandType == SqlCommandType.DELETE) {
+      builder.append("<script>delete from ")
+        .append(entityExpress.getName())
+        .append("<where>");
+      parameterMap.forEach((param, type) ->
+        builder.append(" and ")
+          .append(columnMap.get(param))
+          .append("=#{")
+          .append(param)
+          .append(",javaType=")
+          .append(type.getCanonicalName())
+          .append("}"));
+      builder.append("</where></script>");
     }
     return builder.toString();
   }
