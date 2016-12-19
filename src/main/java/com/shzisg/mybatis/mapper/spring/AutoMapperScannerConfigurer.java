@@ -1,4 +1,4 @@
-package com.shzisg.mybatis.mapper.auto;
+package com.shzisg.mybatis.mapper.spring;
 
 import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;

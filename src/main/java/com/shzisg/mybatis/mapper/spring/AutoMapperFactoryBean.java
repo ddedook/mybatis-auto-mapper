@@ -1,5 +1,6 @@
-package com.shzisg.mybatis.mapper.auto;
+package com.shzisg.mybatis.mapper.spring;
 
+import com.shzisg.mybatis.mapper.auto.MapperAnnotationAutoBuilder;
 import org.mybatis.spring.mapper.MapperFactoryBean;
 
 public class AutoMapperFactoryBean<T> extends MapperFactoryBean<T> {
