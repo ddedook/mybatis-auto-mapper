@@ -5,6 +5,7 @@ import com.shzisg.mybatis.mapper.auto.MapperUtils;
 import org.apache.ibatis.type.TypeHandler;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Map;
 
 public class DeleteBuilder implements SqlBuilder {
@@ -18,11 +19,23 @@ public class DeleteBuilder implements SqlBuilder {
         builder.append("<script>delete from ")
             .append(entityPortray.getName())
             .append("<where>");
-        parameterMap.forEach((param, type) ->
-            builder.append(" and ")
-                .append(columnMap.get(param))
-                .append("=")
-                .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param))));
+        Class<?> onlyParameter = null;
+        if (parameterMap.size() == 1) {
+            Map.Entry<String, Class<?>> entry = parameterMap.entrySet().iterator().next();
+            onlyParameter = entry.getValue();
+        }
+        if (onlyParameter != null && Collection.class.isAssignableFrom(onlyParameter)) {
+            builder.append(" id in ")
+                .append("<foreach collection=\"collection\" item=\"item\" index=\"index\" open=\"(\" separator=\",\" close=\")\" >")
+                .append("#{item}")
+                .append("</foreach>");
+        } else {
+            parameterMap.forEach((param, type) ->
+                builder.append(" and ")
+                    .append(columnMap.get(param))
+                    .append("=")
+                    .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param))));
+        }
         builder.append("</where></script>");
         return builder.toString();
     }

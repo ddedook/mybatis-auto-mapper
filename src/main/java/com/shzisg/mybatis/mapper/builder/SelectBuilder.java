@@ -5,6 +5,7 @@ import com.shzisg.mybatis.mapper.auto.MapperUtils;
 import com.shzisg.mybatis.mapper.page.PageRequest;
 import org.apache.ibatis.type.TypeHandler;
 
+import javax.persistence.OrderBy;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,7 +31,13 @@ public class SelectBuilder implements SqlBuilder {
                     .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param)));
             }
         });
-        builder.append("</where></script>");
+        builder.append("</where>");
+        OrderBy orderBy = method.getAnnotation(OrderBy.class);
+        if (orderBy != null) {
+            builder.append(" order by ")
+                .append(columnMap.getOrDefault(orderBy.value(), orderBy.value()));
+        }
+        builder.append("</script>");
         return builder.toString();
     }
 }

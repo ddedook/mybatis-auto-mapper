@@ -1,5 +1,6 @@
 package com.shzisg.mybatis.mapper.auto;
 
+import com.shzisg.mybatis.mapper.page.Page;
 import com.shzisg.mybatis.mapper.page.PageRequest;
 import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
@@ -48,7 +49,7 @@ public class MapperUtils {
         } else if (resolvedReturnType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) resolvedReturnType;
             Class<?> rawType = (Class<?>) parameterizedType.getRawType();
-            if (Collection.class.isAssignableFrom(rawType)) {
+            if (Collection.class.isAssignableFrom(rawType) || Page.class.isAssignableFrom(rawType)) {
                 Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
                 if (actualTypeArguments != null && actualTypeArguments.length == 1) {
                     Type returnTypeParameter = actualTypeArguments[0];

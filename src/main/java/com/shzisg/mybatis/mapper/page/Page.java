@@ -7,8 +7,6 @@ public class Page<E> {
     private long total;
     private int page;
     private int size;
-    private String orderBy;
-    private boolean asc;
     private List<E> content;
     
     public Page() {
@@ -20,6 +18,10 @@ public class Page<E> {
         this.total = total;
         this.page = page;
         this.size = size;
+    }
+    
+    public static <Content> Page<Content> from(List<Content> content, PageRequest request) {
+        return new Page<>(content, request.context, request.getPage(), request.getSize());
     }
 
     public long getTotal() {
@@ -44,22 +46,6 @@ public class Page<E> {
 
     public void setSize(int size) {
         this.size = size;
-    }
-
-    public String getOrderBy() {
-        return orderBy;
-    }
-
-    public void setOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-    }
-
-    public boolean isAsc() {
-        return asc;
-    }
-
-    public void setAsc(boolean asc) {
-        this.asc = asc;
     }
 
     public List<E> getContent() {

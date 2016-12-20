@@ -1,7 +1,12 @@
 package com.shzisg.mybatis.mapper.spring;
 
-import com.shzisg.mybatis.mapper.auto.MapperAnnotationAutoBuilder;
+import com.shzisg.mybatis.mapper.auto.AutoMapper;
+import com.shzisg.mybatis.mapper.auto.AutoMapperAnnotationBuilder;
+import org.apache.ibatis.executor.ErrorContext;
+import org.apache.ibatis.session.Configuration;
 import org.mybatis.spring.mapper.MapperFactoryBean;
+
+import static org.springframework.util.Assert.notNull;
 
 public class AutoMapperFactoryBean<T> extends MapperFactoryBean<T> {
     
@@ -15,9 +20,21 @@ public class AutoMapperFactoryBean<T> extends MapperFactoryBean<T> {
 
     @Override
     protected void checkDaoConfig() {
-        Class mapperInterface = getMapperInterface();
-        new MapperAnnotationAutoBuilder(getSqlSession().getConfiguration(), mapperInterface)
-          .parse();
-        super.checkDaoConfig();
+        notNull(getSqlSession(), "Property 'sqlSessionFactory' or 'sqlSessionTemplate' are required");
+        // config mapper
+        Configuration configuration = getSqlSession().getConfiguration();
+        if (!configuration.hasMapper(this.getMapperInterface())) {
+            try {
+                if (AutoMapper.class.isAssignableFrom(this.getMapperInterface())) {
+                    new AutoMapperAnnotationBuilder(getSqlSession().getConfiguration(), this.getMapperInterface())
+                        .parse();
+                }
+                configuration.addMapper(this.getMapperInterface());
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Error while adding the mapper '" + this.getMapperInterface() + "' to configuration.", e);
+            } finally {
+                ErrorContext.instance().reset();
+            }
+        }
     }
 }

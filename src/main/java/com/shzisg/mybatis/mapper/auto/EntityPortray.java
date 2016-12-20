@@ -74,7 +74,7 @@ public class EntityPortray {
             if (type instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 Class rawType = (Class) parameterizedType.getRawType();
-                if (Mapper.class.isAssignableFrom(rawType)) {
+                if (AutoMapper.class.isAssignableFrom(rawType)) {
                     Class entityType = (Class) parameterizedType.getActualTypeArguments()[0];
                     if (entityType.isAnnotationPresent(Table.class)) {
                         return entityType;

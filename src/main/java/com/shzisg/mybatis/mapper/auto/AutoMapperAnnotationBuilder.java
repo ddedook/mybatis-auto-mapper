@@ -22,7 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class MapperAnnotationAutoBuilder {
+public class AutoMapperAnnotationBuilder {
     
     private final Set<Class<? extends Annotation>> sqlAnnotationTypes = new HashSet<>();
     private final Set<Class<? extends Annotation>> sqlProviderAnnotationTypes = new HashSet<>();
@@ -33,7 +33,7 @@ public class MapperAnnotationAutoBuilder {
     private Class<?> type;
     private EntityPortray entityPortray;
     
-    public MapperAnnotationAutoBuilder(Configuration configuration, Class<?> type) {
+    public AutoMapperAnnotationBuilder(Configuration configuration, Class<?> type) {
         String resource = type.getName().replace('.', '/') + ".java (best guess)";
         this.assistant = new MapperBuilderAssistant(configuration, resource);
         this.configuration = configuration;
@@ -94,6 +94,7 @@ public class MapperAnnotationAutoBuilder {
             boolean flushCache = !isSelect;
             boolean useCache = isSelect;
             // build select key
+            
             KeyBuilder keyBuilder = new KeyBuilder(configuration, assistant);
             keyBuilder.buildKey(sqlCommandType, method, mappedStatementId, entityPortray, options, languageDriver);
             
@@ -111,7 +112,7 @@ public class MapperAnnotationAutoBuilder {
             }
             // build result map
             String resultMapId = new ResultBuilder()
-                .buildResultMap(configuration, type, method, isSelect);
+                .buildResultMap(configuration, assistant, type, method, isSelect);
             // config
             assistant.addMappedStatement(
                 mappedStatementId,

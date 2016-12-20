@@ -52,13 +52,14 @@ public class PageInterceptor implements Interceptor {
       MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
       long total = getTotal(countSql, connection, mappedStatement, boundSql);
       List<Page> pageList = new ArrayList<>();
+      pageRequest.context = total;
       if (total == 0) {
         return pageList;
       }
       StringBuilder pageSqlBuilder = new StringBuilder(originalSql);
       if (pageRequest.getOrderBy() != null && !pageRequest.getOrderBy().isEmpty()) {
         pageSqlBuilder
-          .append(" order by")
+          .append(" order by ")
           .append(pageRequest.getOrderBy())
           .append(pageRequest.isAsc() ? " asc" : " desc");
       }
