@@ -18,7 +18,9 @@ public class UuidGenerator extends NoKeyGenerator {
     for (Object param : parameters) {
       MetaObject metaParam = configuration.newMetaObject(param);
       String[] key = ms.getKeyProperties();
-      metaParam.setValue(key[0], uuid());
+      if (metaParam.hasSetter(key[0]) && metaParam.getValue(key[0]) != null) {
+        metaParam.setValue(key[0], uuid());
+      }
     }
   }
   
