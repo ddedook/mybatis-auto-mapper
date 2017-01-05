@@ -33,6 +33,7 @@ public class KeyBuilder {
     public void buildKey(SqlCommandType sqlCommandType, Method method, String mappedStatementId, EntityPortray entityPortray, Options options, LanguageDriver languageDriver) {
         if (SqlCommandType.INSERT.equals(sqlCommandType) || SqlCommandType.UPDATE.equals(sqlCommandType)) {
             // first check for SelectKey annotation - that overrides everything else
+            keyProperty = entityPortray.getPrimaryProperty();
             SelectKey selectKey = method.getAnnotation(SelectKey.class);
             if (selectKey != null) {
                 keyGenerator = handleSelectKeyAnnotation(selectKey, mappedStatementId, MapperUtils.getParameterType(method), languageDriver);
