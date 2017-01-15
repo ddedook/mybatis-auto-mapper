@@ -24,7 +24,7 @@ public class UuidGenerator extends NoKeyGenerator {
     }
   }
   
-  private String uuid() {
+  protected String uuid() {
     return UUID.randomUUID().toString().replaceAll("-", "");
   }
   
