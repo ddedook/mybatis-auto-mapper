@@ -7,6 +7,7 @@ import com.shzisg.mybatis.mapper.page.PageRequest;
 import org.apache.ibatis.type.TypeHandler;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,18 @@ public class SelectBuilder implements SqlBuilder {
       .append(entityPortray.getName())
       .append("<where>");
     parameterMap.forEach((param, type) -> {
-      if (!PageRequest.class.isAssignableFrom(type)) {
+      if (PageRequest.class.isAssignableFrom(type)) {
+        return;
+      }
+      if (Collection.class.isAssignableFrom(type)) {
+        builder.append(" and ")
+          .append(columnMap.get(param))
+          .append(" in ")
+          .append("<foreach item=\"item\" index=\"index\" collection=\"")
+          .append(param)
+          .append("\" open=\"(\" separator=\",\" close=\")\">")
+          .append("#{item}</foreach>");
+      } else {
         builder.append(" and ")
           .append(columnMap.get(param))
           .append("=")
