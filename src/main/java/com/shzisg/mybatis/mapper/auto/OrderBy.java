@@ -10,4 +10,6 @@ public @interface OrderBy {
   String value();
   
   boolean desc() default true;
+  
+  String orderSql() default "";
 }

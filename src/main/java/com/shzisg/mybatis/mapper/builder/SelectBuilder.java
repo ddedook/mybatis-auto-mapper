@@ -1,6 +1,7 @@
 package com.shzisg.mybatis.mapper.builder;
 
 import com.shzisg.mybatis.mapper.auto.EntityPortray;
+import com.shzisg.mybatis.mapper.auto.MapperConfig;
 import com.shzisg.mybatis.mapper.auto.MapperUtils;
 import com.shzisg.mybatis.mapper.auto.OrderBy;
 import com.shzisg.mybatis.mapper.page.PageRequest;
@@ -24,6 +25,9 @@ public class SelectBuilder implements SqlBuilder {
       .append(" from ")
       .append(entityPortray.getName())
       .append("<where>");
+    if (method.getName().equalsIgnoreCase("Valid") && !parameterMap.containsKey(MapperConfig.getDelFlag())) {
+      parameterMap.put("__del_flag__", String.class);
+    }
     parameterMap.forEach((param, type) -> {
       if (PageRequest.class.isAssignableFrom(type)) {
         return;
@@ -36,6 +40,10 @@ public class SelectBuilder implements SqlBuilder {
           .append(param)
           .append("\" open=\"(\" separator=\",\" close=\")\">")
           .append("#{item}</foreach>");
+      } else if (param.equals("__del_flag__")) {
+        builder.append(" and ")
+          .append(columnMap.get(MapperConfig.getDelFlag()))
+          .append("=0");
       } else {
         builder.append(" and ")
           .append(columnMap.get(param))
@@ -46,9 +54,13 @@ public class SelectBuilder implements SqlBuilder {
     builder.append("</where>");
     OrderBy orderBy = method.getAnnotation(OrderBy.class);
     if (orderBy != null) {
-      builder.append(" order by ")
-        .append(columnMap.getOrDefault(orderBy.value(), orderBy.value()))
-        .append(orderBy.desc() ? "desc" : "asc");
+      if (!orderBy.orderSql().isEmpty()) {
+        builder.append(orderBy.orderSql());
+      } else {
+        builder.append(" order by ")
+          .append(columnMap.getOrDefault(orderBy.value(), orderBy.value()))
+          .append(orderBy.desc() ? "desc" : "asc");
+      }
       
     }
     builder.append("</script>");

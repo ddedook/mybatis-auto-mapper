@@ -13,7 +13,11 @@ public interface AutoMapper<Entity> {
     
     List<Entity> findAll();
     
+    List<Entity> findAllValid();
+    
     Page<Entity> findLimit(PageRequest request);
+    
+    Page<Entity> findLimitValid(PageRequest request);
     
     int insert(Entity entity);
     
