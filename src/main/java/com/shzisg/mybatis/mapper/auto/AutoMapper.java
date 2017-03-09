@@ -23,9 +23,15 @@ public interface AutoMapper<Entity> {
     
     int insertAll(List<Entity> entities);
     
+    int updateSelective(Entity entity);
+    
     int update(Entity entity);
     
     int deleteOne(@Param("id") String id);
     
     int deleteAll(Collection<String> ids);
+    
+    int invalidOne(@Param("id") String id);
+    
+    int invalidAll(Collection<String> ids);
 }

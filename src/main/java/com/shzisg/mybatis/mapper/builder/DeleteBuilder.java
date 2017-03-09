@@ -17,25 +17,25 @@ public class DeleteBuilder implements SqlBuilder {
         Map<String, Class<? extends TypeHandler>> typeHandlers = entityPortray.getColumnTypeHandlers();
         Map<String, Class<?>> parameterMap = MapperUtils.getParameters(method);
         builder.append("<script>delete from ")
-            .append(entityPortray.getName())
-            .append("<where>");
-        Class<?> onlyParameter = null;
-        if (parameterMap.size() == 1) {
-            Map.Entry<String, Class<?>> entry = parameterMap.entrySet().iterator().next();
-            onlyParameter = entry.getValue();
-        }
-        if (onlyParameter != null && Collection.class.isAssignableFrom(onlyParameter)) {
-            builder.append(" id in ")
-                .append("<foreach collection=\"collection\" item=\"item\" index=\"index\" open=\"(\" separator=\",\" close=\")\" >")
-                .append("#{item}")
-                .append("</foreach>");
-        } else {
-            parameterMap.forEach((param, type) ->
+          .append(entityPortray.getName())
+          .append("<where>");
+        parameterMap.forEach((param, type) -> {
+            if (Collection.class.isAssignableFrom(type)) {
                 builder.append(" and ")
-                    .append(columnMap.get(param))
-                    .append("=")
-                    .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param))));
-        }
+                  .append(entityPortray.getClumn(param))
+                  .append(" in ")
+                  .append("<foreach collection=\"")
+                  .append(param)
+                  .append("\" item=\"item\" index=\"index\" open=\"(\" separator=\",\" close=\")\" >")
+                  .append("#{item}")
+                  .append("</foreach>");
+            } else {
+                builder.append(" and ")
+                  .append(columnMap.get(param))
+                  .append("=")
+                  .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param)));
+            }
+        });
         builder.append("</where></script>");
         return builder.toString();
     }

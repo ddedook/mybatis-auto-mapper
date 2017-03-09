@@ -51,10 +51,9 @@ public class PageInterceptor implements Interceptor {
       Connection connection = (Connection) invocation.getArgs()[0];
       MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
       long total = getTotal(countSql, connection, mappedStatement, boundSql);
-      List<Page> pageList = new ArrayList<>();
       pageRequest.context = total;
       if (total == 0) {
-        return pageList;
+        return invocation.proceed();
       }
       StringBuilder pageSqlBuilder = new StringBuilder(originalSql);
       if (pageRequest.getOrderBy() != null && !pageRequest.getOrderBy().isEmpty()) {
