@@ -59,7 +59,7 @@ public class SelectBuilder implements SqlBuilder {
       } else {
         builder.append(" order by ")
           .append(columnMap.getOrDefault(orderBy.value(), orderBy.value()))
-          .append(orderBy.desc() ? "desc" : "asc");
+          .append(orderBy.desc() ? " desc" : " asc");
       }
       
     }
