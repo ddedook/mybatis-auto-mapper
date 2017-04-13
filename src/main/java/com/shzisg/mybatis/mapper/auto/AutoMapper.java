@@ -29,9 +29,9 @@ public interface AutoMapper<Entity> {
     
     int deleteOne(@Param("id") String id);
     
-    int deleteAll(Collection<String> ids);
+    int deleteAll(@Param("id") Collection<String> ids);
     
     int invalidOne(@Param("id") String id);
     
-    int invalidAll(Collection<String> ids);
+    int invalidAll(@Param("id") Collection<String> ids);
 }
