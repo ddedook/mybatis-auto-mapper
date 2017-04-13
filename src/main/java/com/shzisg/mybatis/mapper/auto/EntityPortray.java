@@ -9,8 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class EntityPortray {
   private String name;
@@ -39,7 +38,16 @@ public class EntityPortray {
     } else {
       name = entityClass.getSimpleName().toLowerCase();
     }
-    for (Field field : entityClass.getDeclaredFields()) {
+    List<Field> fields = new ArrayList<>();
+    Class<?> superClass = entityClass;
+    while (!superClass.equals(Object.class)) {
+      Field[] superFields = superClass.getDeclaredFields();
+      if (superFields != null) {
+        Collections.addAll(fields, superFields);
+      }
+      superClass = superClass.getSuperclass();
+    }
+    for (Field field : fields) {
       if (Modifier.isStatic(field.getModifiers())
         || Modifier.isFinal(field.getModifiers())
         || field.getAnnotation(Transient.class) != null) {
