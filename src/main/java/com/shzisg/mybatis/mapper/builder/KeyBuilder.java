@@ -1,8 +1,8 @@
 package com.shzisg.mybatis.mapper.builder;
 
 import com.shzisg.mybatis.mapper.auto.EntityPortray;
-import com.shzisg.mybatis.mapper.auto.MapperConfig;
 import com.shzisg.mybatis.mapper.auto.MapperUtils;
+import com.shzisg.mybatis.mapper.auto.UuidGenerator;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.SelectKey;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
@@ -60,7 +60,7 @@ public class KeyBuilder {
         if (generatedValue != null) {
             String generator = generatedValue.generator();
             if (generator.equals("uuid") || generator.isEmpty()) {
-                return MapperConfig.getGenerator(generator);
+                return new UuidGenerator();
             }
         }
         return null;

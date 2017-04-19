@@ -20,6 +20,17 @@ import java.util.Map;
 
 public class MapperUtils {
     
+    private static Map<Class<?>, Map<Class<?>, EntityPortray>> portrayMap = new HashMap<>();
+    
+    public static EntityPortray getEntityPortray(Class<?> mapper, Class<?> type) {
+        Map<Class<?>, EntityPortray> entities = portrayMap.computeIfAbsent(mapper, (clazz) -> new HashMap<>());
+        return entities.computeIfAbsent(type, EntityPortray::new);
+    }
+    
+    public static void destroyPortray(Class<?> mapper) {
+        portrayMap.remove(mapper);
+    }
+    
     public static Map<String, Class<?>> getParameters(Method method) {
         Map<String, Class<?>> parameterMap = new HashMap<>();
         Class<?>[] parameters = method.getParameterTypes();

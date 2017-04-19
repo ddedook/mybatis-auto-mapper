@@ -48,7 +48,7 @@ public class AutoMapperAnnotationBuilder {
         sqlProviderAnnotationTypes.add(InsertProvider.class);
         sqlProviderAnnotationTypes.add(UpdateProvider.class);
         sqlProviderAnnotationTypes.add(DeleteProvider.class);
-    
+        
         commandBuilders.put(SqlCommandType.SELECT, new SelectBuilder());
         commandBuilders.put(SqlCommandType.INSERT, new InsertBuilder());
         commandBuilders.put(SqlCommandType.UPDATE, new UpdateBuilder());
@@ -58,7 +58,7 @@ public class AutoMapperAnnotationBuilder {
     public void parse() {
         String resource = type.toString();
         if (!configuration.isResourceLoaded(resource)) {
-            this.entityPortray = new EntityPortray(this.type);
+            this.entityPortray = MapperUtils.getEntityPortray(type, type);
             loadXmlResource();
             configuration.addLoadedResource(resource);
             assistant.setCurrentNamespace(type.getName());
@@ -74,6 +74,7 @@ public class AutoMapperAnnotationBuilder {
                     // ignore
                 }
             }
+            MapperUtils.destroyPortray(type);
         }
     }
     
@@ -226,7 +227,7 @@ public class AutoMapperAnnotationBuilder {
         SqlCommandType commandType = getSqlCommandType(method);
         SqlBuilder commandBuilder = commandBuilders.get(commandType);
         if (commandBuilder != null) {
-            return commandBuilder.buildSql(method, entityPortray);
+            return commandBuilder.buildSql(type, method, entityPortray);
         }
         return null;
     }

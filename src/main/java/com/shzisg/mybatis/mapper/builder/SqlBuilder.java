@@ -6,5 +6,5 @@ import java.lang.reflect.Method;
 
 public interface SqlBuilder {
     
-    String buildSql(Method method, EntityPortray entityPortray);
+    String buildSql(Class<?> mapper, Method method, EntityPortray entityPortray);
 }

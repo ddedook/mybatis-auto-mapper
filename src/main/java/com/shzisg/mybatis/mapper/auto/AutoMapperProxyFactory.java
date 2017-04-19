@@ -24,7 +24,7 @@ public class AutoMapperProxyFactory<T> extends MapperProxyFactory<T> {
     
     @SuppressWarnings("unchecked")
     private T newInstance(AutoMapperProxy<T> mapperProxy) {
-        return (T) Proxy.newProxyInstance(getMapperInterface().getClassLoader(), new Class[] { getMapperInterface() }, mapperProxy);
+        return (T) Proxy.newProxyInstance(getMapperInterface().getClassLoader(), new Class[]{getMapperInterface()}, mapperProxy);
     }
     
     @Override

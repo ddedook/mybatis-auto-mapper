@@ -3,7 +3,7 @@ package com.shzisg.mybatis.mapper.page;
 import java.util.List;
 
 public class Page<E> {
-
+    
     private long total;
     private int page;
     private int size;
@@ -23,11 +23,11 @@ public class Page<E> {
     public static <Content> Page<Content> from(List<Content> content, PageRequest request) {
         return new Page<>(content, request.context, request.getPage(), request.getSize());
     }
-
+    
     public long getTotal() {
         return total;
     }
-
+    
     public void setTotal(long total) {
         this.total = total;
     }
@@ -43,15 +43,15 @@ public class Page<E> {
     public int getSize() {
         return size;
     }
-
+    
     public void setSize(int size) {
         this.size = size;
     }
-
+    
     public List<E> getContent() {
         return this.content;
     }
-
+    
     public void setContent(List<E> content) {
         this.content = content;
     }

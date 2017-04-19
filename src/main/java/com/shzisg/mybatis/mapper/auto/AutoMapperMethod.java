@@ -202,7 +202,7 @@ public class AutoMapperMethod {
                 }
             }
             if (ms == null) {
-                if(method.getAnnotation(Flush.class) != null){
+                if (method.getAnnotation(Flush.class) != null) {
                     name = null;
                     type = SqlCommandType.FLUSH;
                 } else {

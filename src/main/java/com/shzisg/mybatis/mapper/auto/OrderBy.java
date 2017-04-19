@@ -6,10 +6,10 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface OrderBy {
-  
-  String value();
-  
-  boolean desc() default true;
-  
-  String orderSql() default "";
+    
+    String value();
+    
+    boolean desc() default true;
+    
+    String orderSql() default "";
 }

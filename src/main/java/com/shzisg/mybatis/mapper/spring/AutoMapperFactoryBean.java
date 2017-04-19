@@ -9,7 +9,7 @@ import org.mybatis.spring.mapper.MapperFactoryBean;
 import static org.springframework.util.Assert.notNull;
 
 public class AutoMapperFactoryBean<T> extends MapperFactoryBean<T> {
-    
+
     public AutoMapperFactoryBean() {
         //intentionally empty
     }

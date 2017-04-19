@@ -1,10 +1,10 @@
 package com.shzisg.mybatis.mapper.page;
 
 public class PageRequest {
-
+    
+    long context;
     private int page;
     private int size;
-    long context;
     private String orderBy;
     private boolean asc;
     
@@ -19,7 +19,7 @@ public class PageRequest {
     public int getSize() {
         return size;
     }
-
+    
     public void setSize(int size) {
         this.size = size;
     }
@@ -27,15 +27,15 @@ public class PageRequest {
     public String getOrderBy() {
         return orderBy;
     }
-
+    
     public void setOrderBy(String orderBy) {
         this.orderBy = orderBy;
     }
-
+    
     public boolean isAsc() {
         return asc;
     }
-
+    
     public void setAsc(boolean asc) {
         this.asc = asc;
     }

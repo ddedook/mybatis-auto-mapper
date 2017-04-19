@@ -74,7 +74,7 @@ public class ResultBuilder {
                 new org.apache.ibatis.mapping.ResultMap.Builder(configuration, resultMapId, returnType, resultMappings);
             configuration.addResultMap(builder.build());
         } else {
-           resultMapId = parseResultMap(method, returnType, type);
+            resultMapId = parseResultMap(method, returnType, type);
         }
         return resultMapId;
     }

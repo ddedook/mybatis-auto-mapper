@@ -11,29 +11,29 @@ import java.util.Map;
 public class DeleteBuilder implements SqlBuilder {
     
     @Override
-    public String buildSql(Method method, EntityPortray entityPortray) {
+    public String buildSql(Class<?> mapper, Method method, EntityPortray entityPortray) {
         StringBuilder builder = new StringBuilder();
         Map<String, String> columnMap = entityPortray.getColumnMap();
         Map<String, Class<? extends TypeHandler>> typeHandlers = entityPortray.getColumnTypeHandlers();
         Map<String, Class<?>> parameterMap = MapperUtils.getParameters(method);
         builder.append("<script>delete from ")
-          .append(entityPortray.getName())
-          .append("<where>");
+            .append(entityPortray.getName())
+            .append("<where>");
         parameterMap.forEach((param, type) -> {
             if (Collection.class.isAssignableFrom(type)) {
                 builder.append(" and ")
-                  .append(entityPortray.getClumn(param))
-                  .append(" in ")
-                  .append("<foreach collection=\"")
-                  .append(param)
-                  .append("\" item=\"item\" index=\"index\" open=\"(\" separator=\",\" close=\")\" >")
-                  .append("#{item}")
-                  .append("</foreach>");
+                    .append(entityPortray.getClumn(param))
+                    .append(" in ")
+                    .append("<foreach collection=\"")
+                    .append(param)
+                    .append("\" item=\"item\" index=\"index\" open=\"(\" separator=\",\" close=\")\" >")
+                    .append("#{item}")
+                    .append("</foreach>");
             } else {
                 builder.append(" and ")
-                  .append(columnMap.get(param))
-                  .append("=")
-                  .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param)));
+                    .append(columnMap.get(param))
+                    .append("=")
+                    .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param)));
             }
         });
         builder.append("</where></script>");

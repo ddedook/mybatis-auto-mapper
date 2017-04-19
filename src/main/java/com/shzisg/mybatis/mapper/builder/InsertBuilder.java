@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class InsertBuilder implements SqlBuilder {
     
     @Override
-    public String buildSql(Method method, EntityPortray entityPortray) {
+    public String buildSql(Class<?> mapper, Method method, EntityPortray entityPortray) {
         StringBuilder builder = new StringBuilder();
         Map<String, Class<?>> typeMap = entityPortray.getColumnTypeMap();
         Map<String, String> columnMap = entityPortray.getColumnMap();
