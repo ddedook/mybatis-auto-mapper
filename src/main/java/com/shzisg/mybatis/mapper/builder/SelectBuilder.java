@@ -27,7 +27,7 @@ public class SelectBuilder implements SqlBuilder {
         }
         builder.append("<script>select ")
             .append(returnPortray.getColumnMap().values().stream().collect(Collectors.joining(",")))
-            .append(" FROM ")
+            .append(" from ")
             .append(entityPortray.getName())
             .append("<where>");
         parameterMap.forEach((param, paraType) -> {
