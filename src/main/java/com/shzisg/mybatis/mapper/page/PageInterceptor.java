@@ -43,6 +43,9 @@ public class PageInterceptor implements Interceptor {
         }
         
         if (pageRequest != null) {
+            if (pageRequest.getPage() == 0) {
+                throw new RuntimeException("Page should start with 1");
+            }
             BoundSql boundSql = (BoundSql) metaObject.getValue("parameterHandler.boundSql");
             String originalSql = boundSql.getSql();
             String countSql = "select count(1) " + originalSql.substring(originalSql.indexOf("from"));
@@ -50,7 +53,7 @@ public class PageInterceptor implements Interceptor {
             MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
             long total = getTotal(countSql, connection, mappedStatement, boundSql);
             pageRequest.context = total;
-            if (total == 0 || pageRequest.getPage() == 0) {
+            if (total == 0) {
                 return invocation.proceed();
             }
             StringBuilder pageSqlBuilder = new StringBuilder(originalSql);
