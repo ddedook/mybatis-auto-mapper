@@ -50,7 +50,7 @@ public class PageInterceptor implements Interceptor {
             MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
             long total = getTotal(countSql, connection, mappedStatement, boundSql);
             pageRequest.context = total;
-            if (total == 0) {
+            if (total == 0 || pageRequest.getPage() == 0) {
                 return invocation.proceed();
             }
             StringBuilder pageSqlBuilder = new StringBuilder(originalSql);
