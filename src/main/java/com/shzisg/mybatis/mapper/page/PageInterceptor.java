@@ -43,7 +43,7 @@ public class PageInterceptor implements Interceptor {
         }
         
         if (pageRequest != null) {
-            if (pageRequest.getPage() == 0) {
+            if (pageRequest.getPage() <= 0) {
                 throw new RuntimeException("Page should start with 1");
             }
             BoundSql boundSql = (BoundSql) metaObject.getValue("parameterHandler.boundSql");
@@ -63,10 +63,7 @@ public class PageInterceptor implements Interceptor {
                     .append(pageRequest.getOrderBy())
                     .append(pageRequest.isAsc() ? " asc" : " desc");
             }
-            int offset = 0;
-            if (pageRequest.getPage() > 0) {
-                offset = pageRequest.getSize() * (pageRequest.getPage() - 1);
-            }
+            int offset = pageRequest.getSize() * (pageRequest.getPage() - 1);
             pageSqlBuilder.append(" limit ")
                 .append(offset)
                 .append(",")
