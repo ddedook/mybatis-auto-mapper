@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SelectBuilder implements SqlBuilder {
-    
+
     @Override
     public String buildSql(Class<?> mapper, Method method, EntityPortray entityPortray) {
         StringBuilder builder = new StringBuilder();
@@ -22,7 +22,7 @@ public class SelectBuilder implements SqlBuilder {
         Map<String, String> columnMap = entityPortray.getColumnMap();
         Map<String, Class<? extends TypeHandler>> typeHandlers = entityPortray.getColumnTypeHandlers();
         Map<String, Class<?>> parameterMap = MapperUtils.getParameters(method);
-        if (columnMap.values().contains(MapperConfig.getDelFlag()) && method.getName().endsWith("Valid") && !parameterMap.containsKey(MapperConfig.getDelFlag())) {
+        if (columnMap.containsKey(MapperConfig.getDelFlag()) && method.getName().endsWith("Valid") && !parameterMap.containsKey(MapperConfig.getDelFlag())) {
             parameterMap.put("__del_flag__", String.class);
         }
         builder.append("<script>select ")
@@ -44,7 +44,7 @@ public class SelectBuilder implements SqlBuilder {
                     .append("#{item}</foreach>");
             } else if (param.equals("__del_flag__")) {
                 builder.append(" and ")
-                    .append(MapperConfig.getDelFlag())
+                    .append(columnMap.get(MapperConfig.getDelFlag()))
                     .append("=0");
             } else {
                 builder.append(" and ")
