@@ -46,6 +46,21 @@ public class MapperUtils {
         return parameterMap;
     }
     
+    public static Map<String, MethodParameter> getMethodParameters(Method method) {
+        Map<String, MethodParameter> parameterMap = new HashMap<>();
+        Class<?>[] parameters = method.getParameterTypes();
+        for (int i = 0; i < parameters.length; ++i) {
+            MethodParameter parameter = new MethodParameter(method, i);
+            Param param = parameter.getParameterAnnotation(Param.class);
+            String key = parameters[i].getSimpleName();
+            if (param != null) {
+                key = param.value();
+            }
+            parameterMap.put(key, parameter);
+        }
+        return parameterMap;
+    }
+    
     public static Class<?> getReturnType(Method method, Class<?> type) {
         Class<?> returnType = method.getReturnType();
         Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, type);

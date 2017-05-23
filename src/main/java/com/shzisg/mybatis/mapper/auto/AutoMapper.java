@@ -21,13 +21,13 @@ public interface AutoMapper<Entity> {
     
     int insert(Entity entity);
     
-    int insertAll(List<Entity> entities);
+    int insertAll(Collection<Entity> entities);
     
     int updateSelective(Entity entity);
     
     int update(Entity entity);
     
-    int updateSelectiveAll(List<Entity> entities);
+    int updateSelectiveAll(Collection<Entity> entities);
     
     int updateAll(List<Entity> entities);
     

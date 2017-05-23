@@ -1,8 +1,10 @@
 package com.shzisg.mybatis.mapper.builder;
 
+import com.shzisg.mybatis.mapper.anno.Not;
 import com.shzisg.mybatis.mapper.auto.EntityPortray;
 import com.shzisg.mybatis.mapper.auto.MapperUtils;
 import org.apache.ibatis.type.TypeHandler;
+import org.springframework.core.MethodParameter;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -15,15 +17,16 @@ public class DeleteBuilder implements SqlBuilder {
         StringBuilder builder = new StringBuilder();
         Map<String, String> columnMap = entityPortray.getColumnMap();
         Map<String, Class<? extends TypeHandler>> typeHandlers = entityPortray.getColumnTypeHandlers();
-        Map<String, Class<?>> parameterMap = MapperUtils.getParameters(method);
+        Map<String, MethodParameter> parameterMap = MapperUtils.getMethodParameters(method);
         builder.append("<script>delete from ")
             .append(entityPortray.getName())
             .append("<where>");
         parameterMap.forEach((param, type) -> {
-            if (Collection.class.isAssignableFrom(type)) {
+            if (Collection.class.isAssignableFrom(type.getParameterType())) {
                 builder.append(" and ")
                     .append(entityPortray.getClumn(param))
-                    .append(" in ")
+                    .append(type.getParameterAnnotation(Not.class) != null ? " " : " not ")
+                    .append("in ")
                     .append("<foreach collection=\"")
                     .append(param)
                     .append("\" item=\"item\" index=\"index\" open=\"(\" separator=\",\" close=\")\" >")
@@ -32,8 +35,9 @@ public class DeleteBuilder implements SqlBuilder {
             } else {
                 builder.append(" and ")
                     .append(columnMap.get(param))
+                    .append(type.getParameterAnnotation(Not.class) != null ? "" : "!")
                     .append("=")
-                    .append(MapperUtils.buildTypeValue(param, type, "", typeHandlers.get(param)));
+                    .append(MapperUtils.buildTypeValue(param, type.getParameterType(), "", typeHandlers.get(param)));
             }
         });
         builder.append("</where></script>");
