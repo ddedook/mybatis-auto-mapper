@@ -25,7 +25,7 @@ public class DeleteBuilder implements SqlBuilder {
             if (Collection.class.isAssignableFrom(type.getParameterType())) {
                 builder.append(" and ")
                     .append(entityPortray.getClumn(param))
-                    .append(type.getParameterAnnotation(Not.class) != null ? " " : " not ")
+                    .append(type.getParameterAnnotation(Not.class) == null ? " " : " not ")
                     .append("in ")
                     .append("<foreach collection=\"")
                     .append(param)
@@ -35,7 +35,7 @@ public class DeleteBuilder implements SqlBuilder {
             } else {
                 builder.append(" and ")
                     .append(columnMap.get(param))
-                    .append(type.getParameterAnnotation(Not.class) != null ? "!" : "")
+                    .append(type.getParameterAnnotation(Not.class) == null ? "" : "!")
                     .append("=")
                     .append(MapperUtils.buildTypeValue(param, type.getParameterType(), "", typeHandlers.get(param)));
             }
