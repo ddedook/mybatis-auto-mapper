@@ -34,10 +34,14 @@ public class SelectBuilder implements SqlBuilder {
             .append(entityPortray.getName())
             .append("<where>");
         parameterMap.forEach((param, paraType) -> {
-            if (PageRequest.class.isAssignableFrom(paraType.getParameterType())) {
+            if (!param.equals("__del_flag__") && PageRequest.class.isAssignableFrom(paraType.getParameterType())) {
                 return;
             }
-            if (Collection.class.isAssignableFrom(paraType.getParameterType())) {
+            if (param.equals("__del_flag__")) {
+                builder.append(" and ")
+                    .append(columnMap.get(MapperConfig.getDelFlag()))
+                    .append("=0");
+            } else if (Collection.class.isAssignableFrom(paraType.getParameterType())) {
                 builder.append(" and ")
                     .append(columnMap.get(param))
                     .append(paraType.getParameterAnnotation(Not.class) == null ? "" : " not")
@@ -46,10 +50,6 @@ public class SelectBuilder implements SqlBuilder {
                     .append(param)
                     .append("\" open=\"(\" separator=\",\" close=\")\">")
                     .append("#{item}</foreach>");
-            } else if (param.equals("__del_flag__")) {
-                builder.append(" and ")
-                    .append(columnMap.get(MapperConfig.getDelFlag()))
-                    .append("=0");
             } else {
                 builder.append(" and ")
                     .append(columnMap.get(param))
