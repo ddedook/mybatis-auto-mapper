@@ -48,11 +48,16 @@ public class PageInterceptor implements Interceptor {
             }
             BoundSql boundSql = (BoundSql) metaObject.getValue("parameterHandler.boundSql");
             String originalSql = boundSql.getSql();
-            int fromIndex = originalSql.indexOf("from");
-            if (fromIndex == -1) {
-                fromIndex = originalSql.indexOf("FROM");
+            String countSql;
+            if (originalSql.contains("union")) {
+                countSql = "select count(1) from (" + originalSql + ") as origin_table";
+            } else {
+                int fromIndex = originalSql.indexOf("from");
+                if (fromIndex == -1) {
+                    fromIndex = originalSql.indexOf("FROM");
+                }
+                countSql = "select count(1) " + originalSql.substring(fromIndex);
             }
-            String countSql = "select count(1) " + originalSql.substring(fromIndex);
             Connection connection = (Connection) invocation.getArgs()[0];
             MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
             long total = getTotal(countSql, connection, mappedStatement, boundSql);
