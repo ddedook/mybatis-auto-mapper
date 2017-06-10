@@ -20,9 +20,9 @@ import java.util.Properties;
 
 @Intercepts({@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})})
 public class PageInterceptor implements Interceptor {
-    
+
     private final Logger logger = LoggerFactory.getLogger(PageInterceptor.class);
-    
+
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
@@ -41,23 +41,14 @@ public class PageInterceptor implements Interceptor {
         } else if (parameterObject instanceof PageRequest) {
             pageRequest = (PageRequest) parameterObject;
         }
-        
+
         if (pageRequest != null) {
             if (pageRequest.getPage() <= 0) {
                 throw new RuntimeException("Page should start with 1");
             }
             BoundSql boundSql = (BoundSql) metaObject.getValue("parameterHandler.boundSql");
             String originalSql = boundSql.getSql();
-            String countSql;
-            if (originalSql.contains("union")) {
-                countSql = "select count(1) from (" + originalSql + ") as origin_table";
-            } else {
-                int fromIndex = originalSql.indexOf("from");
-                if (fromIndex == -1) {
-                    fromIndex = originalSql.indexOf("FROM");
-                }
-                countSql = "select count(1) " + originalSql.substring(fromIndex);
-            }
+            String countSql = "select count(1) from (" + originalSql + ") as base";
             Connection connection = (Connection) invocation.getArgs()[0];
             MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
             long total = getTotal(countSql, connection, mappedStatement, boundSql);
@@ -82,7 +73,7 @@ public class PageInterceptor implements Interceptor {
         }
         return invocation.proceed();
     }
-    
+
     private long getTotal(String sql, Connection connection, MappedStatement mappedStatement, BoundSql boundSql) {
         PreparedStatement preparedStmt = null;
         ResultSet rs = null;
@@ -115,12 +106,12 @@ public class PageInterceptor implements Interceptor {
         }
         return 0;
     }
-    
+
     @Override
     public Object plugin(Object target) {
         return Plugin.wrap(target, this);
     }
-    
+
     @Override
     public void setProperties(Properties properties) {
     }
