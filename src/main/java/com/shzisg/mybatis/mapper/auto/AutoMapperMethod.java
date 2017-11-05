@@ -1,5 +1,9 @@
 package com.shzisg.mybatis.mapper.auto;
 
+import com.shzisg.mybatis.mapper.concurrent.MapperExecutorService;
+import com.shzisg.mybatis.mapper.concurrent.MapperFuture;
+import com.shzisg.mybatis.mapper.concurrent.SelectManyTask;
+import com.shzisg.mybatis.mapper.concurrent.SelectOneTask;
 import com.shzisg.mybatis.mapper.page.Page;
 import com.shzisg.mybatis.mapper.page.PageRequest;
 import org.apache.ibatis.annotations.Flush;
@@ -49,14 +53,22 @@ public class AutoMapperMethod {
                 executeWithResultHandler(sqlSession, args);
                 result = null;
             } else if (method.returnsMany()) {
-                result = executeForMany(sqlSession, args);
+                if (MapperFuture.class.isAssignableFrom(method.getReturnType())) {
+                    result = MapperExecutorService.submit(new SelectManyTask(sqlSession, command, method, args));
+                } else {
+                    result = executeForMany(sqlSession, args);
+                }
             } else if (method.returnsMap()) {
                 result = executeForMap(sqlSession, args);
             } else if (method.returnsCursor()) {
                 result = executeForCursor(sqlSession, args);
             } else {
                 Object param = method.convertArgsToSqlCommandParam(args);
-                result = sqlSession.selectOne(command.getName(), param);
+                if (MapperFuture.class.isAssignableFrom(method.getReturnType())) {
+                    result = MapperExecutorService.submit(new SelectOneTask(sqlSession, command.getName(), param));
+                } else {
+                    result = sqlSession.selectOne(command.getName(), param);
+                }
             }
         } else if (SqlCommandType.FLUSH == command.getType()) {
             result = sqlSession.flushStatements();
@@ -114,7 +126,7 @@ public class AutoMapperMethod {
         // issue #510 Collections & arrays support
         if (!method.getReturnType().isAssignableFrom(result.getClass())) {
             if (method.getReturnType().isArray()) {
-                return convertToArray(result);
+                return convertToArray(result, method);
             } else if (Page.class.isAssignableFrom(method.getReturnType())) {
                 PageRequest request = null;
                 for (Object arg : args) {
@@ -127,7 +139,7 @@ public class AutoMapperMethod {
                 }
                 return Page.from(result, request);
             } else {
-                return convertToDeclaredCollection(sqlSession.getConfiguration(), result);
+                return convertToDeclaredCollection(sqlSession.getConfiguration(), result, method);
             }
         }
         return result;
@@ -145,7 +157,7 @@ public class AutoMapperMethod {
         return result;
     }
     
-    private <E> Object convertToDeclaredCollection(Configuration config, List<E> list) {
+    public static <E> Object convertToDeclaredCollection(Configuration config, List<E> list, MethodSignature method) {
         Object collection = config.getObjectFactory().create(method.getReturnType());
         MetaObject metaObject = config.newMetaObject(collection);
         metaObject.addAll(list);
@@ -153,7 +165,7 @@ public class AutoMapperMethod {
     }
     
     @SuppressWarnings("unchecked")
-    private <E> E[] convertToArray(List<E> list) {
+    public static <E> E[] convertToArray(List<E> list, MethodSignature method) {
         E[] array = (E[]) Array.newInstance(method.getReturnType().getComponentType(), list.size());
         array = list.toArray(array);
         return array;
@@ -233,6 +245,7 @@ public class AutoMapperMethod {
         private final boolean returnsVoid;
         private final boolean returnsCursor;
         private final Class<?> returnType;
+        private final Class<?> returnRealType;
         private final String mapKey;
         private final Integer resultHandlerIndex;
         private final Integer rowBoundsIndex;
@@ -241,6 +254,15 @@ public class AutoMapperMethod {
         
         public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {
             Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, mapperInterface);
+            Type realType = resolvedReturnType;
+            if (resolvedReturnType instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) resolvedReturnType;
+                Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+                if (MapperFuture.class.isAssignableFrom(rawType)) {
+                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                    realType = actualTypeArguments[0];
+                }
+            }
             if (resolvedReturnType instanceof Class<?>) {
                 this.returnType = (Class<?>) resolvedReturnType;
             } else if (resolvedReturnType instanceof ParameterizedType) {
@@ -248,10 +270,21 @@ public class AutoMapperMethod {
             } else {
                 this.returnType = method.getReturnType();
             }
-            this.returnsVoid = void.class.equals(this.returnType);
-            this.returnsMany = (configuration.getObjectFactory().isCollection(this.returnType) || this.returnType.isArray()
-                || Page.class.isAssignableFrom(this.returnType));
-            this.returnsCursor = Cursor.class.equals(this.returnType);
+            if (realType != resolvedReturnType) {
+                if (realType instanceof Class<?>) {
+                    this.returnRealType = (Class<?>) realType;
+                } else if (realType instanceof ParameterizedType) {
+                    this.returnRealType = (Class<?>) ((ParameterizedType) realType).getRawType();
+                } else {
+                    this.returnRealType = method.getReturnType();
+                }
+            } else {
+                this.returnRealType = this.returnType;
+            }
+            this.returnsVoid = void.class.equals(this.returnRealType);
+            this.returnsMany = (configuration.getObjectFactory().isCollection(this.returnRealType) || this.returnRealType.isArray()
+                || Page.class.isAssignableFrom(this.returnRealType));
+            this.returnsCursor = Cursor.class.equals(this.returnRealType);
             this.mapKey = getMapKey(method);
             this.returnsMap = (this.mapKey != null);
             this.hasNamedParameters = hasNamedParams(method);
@@ -304,6 +337,10 @@ public class AutoMapperMethod {
         
         public Class<?> getReturnType() {
             return returnType;
+        }
+        
+        public Class<?> getReturnRealType() {
+            return returnRealType;
         }
         
         public boolean returnsMany() {

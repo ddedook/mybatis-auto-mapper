@@ -1,5 +1,6 @@
 package com.shzisg.mybatis.mapper.auto;
 
+import com.shzisg.mybatis.mapper.generator.UuidGenerator;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
 
 import java.util.HashMap;

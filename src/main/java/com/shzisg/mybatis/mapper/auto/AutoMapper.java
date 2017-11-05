@@ -1,5 +1,6 @@
 package com.shzisg.mybatis.mapper.auto;
 
+import com.shzisg.mybatis.mapper.concurrent.MapperFuture;
 import com.shzisg.mybatis.mapper.page.Page;
 import com.shzisg.mybatis.mapper.page.PageRequest;
 import org.apache.ibatis.annotations.Param;
@@ -7,35 +8,45 @@ import org.apache.ibatis.annotations.Param;
 import java.util.Collection;
 import java.util.List;
 
-public interface AutoMapper<Entity> {
+public interface AutoMapper<Entity, Primary> {
     
-    Entity findOne(@Param("id") String id);
+    Entity findOne(@Param("id") Primary id);
+    
+    MapperFuture<Entity> findOneAsync(@Param("id") Primary id);
     
     List<Entity> findAll();
     
+    MapperFuture<List<Entity>> findAllAsync(@Param("id") Primary id);
+    
     List<Entity> findAllValid();
+    
+    MapperFuture<List<Entity>> findAllValidAsync();
     
     Page<Entity> findLimit(PageRequest request);
     
+    MapperFuture<Page<Entity>> findLimitAsync(PageRequest request);
+    
     Page<Entity> findLimitValid(PageRequest request);
+    
+    MapperFuture<Page<Entity>> findLimitValidAsync(PageRequest request);
     
     int insert(Entity entity);
     
-    int insertAll(Collection<Entity> entities);
+    int insertAll(Collection<? extends Entity> entities);
     
     int updateSelective(Entity entity);
     
     int update(Entity entity);
     
-    int updateSelectiveAll(Collection<Entity> entities);
+    int updateSelectiveAll(Collection<? extends Entity> entities);
     
-    int updateAll(List<Entity> entities);
+    int updateAll(List<? extends Entity> entities);
     
-    int deleteOne(@Param("id") String id);
+    int deleteOne(@Param("id") Primary id);
     
-    int deleteAll(@Param("id") Collection<String> ids);
+    int deleteAll(@Param("id") Collection<Primary> ids);
     
-    int invalidOne(@Param("id") String id);
+    int invalidOne(@Param("id") Primary id);
     
-    int invalidAll(@Param("id") Collection<String> ids);
+    int invalidAll(@Param("id") Collection<Primary> ids);
 }

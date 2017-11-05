@@ -1,4 +1,4 @@
-package com.shzisg.mybatis.mapper.auto;
+package com.shzisg.mybatis.mapper.generator;
 
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.keygen.NoKeyGenerator;

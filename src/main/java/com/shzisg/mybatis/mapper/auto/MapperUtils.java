@@ -1,5 +1,6 @@
 package com.shzisg.mybatis.mapper.auto;
 
+import com.shzisg.mybatis.mapper.concurrent.MapperFuture;
 import com.shzisg.mybatis.mapper.page.Page;
 import com.shzisg.mybatis.mapper.page.PageRequest;
 import org.apache.ibatis.annotations.MapKey;
@@ -64,6 +65,14 @@ public class MapperUtils {
     public static Class<?> getReturnType(Method method, Class<?> type) {
         Class<?> returnType = method.getReturnType();
         Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, type);
+        if (resolvedReturnType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) resolvedReturnType;
+            Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+            if (MapperFuture.class.isAssignableFrom(rawType)) {
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                resolvedReturnType = actualTypeArguments[0];
+            }
+        }
         if (resolvedReturnType instanceof Class) {
             returnType = (Class<?>) resolvedReturnType;
             if (void.class.equals(returnType)) {

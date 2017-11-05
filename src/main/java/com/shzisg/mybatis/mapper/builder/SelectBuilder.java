@@ -23,7 +23,6 @@ public class SelectBuilder implements SqlBuilder {
         EntityPortray returnPortray = MapperUtils.getEntityPortray(mapper, returnType);
         Map<String, String> columnMap = entityPortray.getColumnMap();
         Map<String, Class<? extends TypeHandler>> typeHandlers = entityPortray.getColumnTypeHandlers();
-//        Map<String, Class<?>> parameterMap = MapperUtils.getParameters(method);
         Map<String, MethodParameter> parameterMap = MapperUtils.getMethodParameters(method);
         if (columnMap.containsKey(MapperConfig.getDelFlag()) && method.getName().endsWith("Valid") && !parameterMap.containsKey(MapperConfig.getDelFlag())) {
             parameterMap.put("__del_flag__", null);
@@ -34,10 +33,10 @@ public class SelectBuilder implements SqlBuilder {
             .append(entityPortray.getName())
             .append("<where>");
         parameterMap.forEach((param, paraType) -> {
-            if (!param.equals("__del_flag__") && PageRequest.class.isAssignableFrom(paraType.getParameterType())) {
+            if (!"__del_flag__".equals(param) && PageRequest.class.isAssignableFrom(paraType.getParameterType())) {
                 return;
             }
-            if (param.equals("__del_flag__")) {
+            if ("__del_flag__".equals(param)) {
                 builder.append(" and ")
                     .append(columnMap.get(MapperConfig.getDelFlag()))
                     .append("=0");
