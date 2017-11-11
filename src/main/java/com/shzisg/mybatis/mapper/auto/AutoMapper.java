@@ -16,7 +16,7 @@ public interface AutoMapper<Entity, Primary> {
     
     List<Entity> findAll();
     
-    MapperFuture<List<Entity>> findAllAsync(@Param("id") Primary id);
+    MapperFuture<List<Entity>> findAllAsync();
     
     List<Entity> findAllValid();
     
